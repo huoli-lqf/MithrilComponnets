@@ -7,9 +7,14 @@
     document.head.appendChild(script);
   }
 
+  function getComponent(path) {
+    var index = path.lastIndexOf('/');
+    return path.substring(index + 1);
+  }
+
   // 路由加载启动器
-  function moduleLoader(key, value) {
-    var module = {
+  function moduleLoader(key) {
+    var toLoadModule = {
       controller: function() {
         // mithril的redraw机制
         m.startComputation();
@@ -17,7 +22,7 @@
         // 加载真实路由
         loadScript(baseDir + routesCache[key] + '.js', function() {
           // 保留真是路由，当第二次使用到该路由的时候，不会再次加载，而是直接使用保存好的路由
-          realRoutes[key] = window[namespace][routesCache[key]];
+          realRoutes[key] = window[namespace][getComponent(routesCache[key])];
 
           // mithril的redraw机制
           m.endComputation();
@@ -29,7 +34,7 @@
         return realRoutes[key].view(ctrl);
       }
     };
-    return module;
+    return toLoadModule;
   }
 
   // 记录定义的路由
@@ -54,14 +59,14 @@
     // 加载默认路由
     loadScript(config.baseDir + routes[home] + '.js', function() {
       // 保留默认路由
-      realRoutes[home] = window[namespace][routes[home]];
+      realRoutes[home] = window[namespace][getComponent(routes[home])];
 
       // 为路由指定路由加载启动器
       for(var key in routes) {
         if(key === home) {
           continue;
         } else {
-          realRoutes[key] = moduleLoader(key, routes[key]);
+          realRoutes[key] = moduleLoader(key);
         }
       }
 
